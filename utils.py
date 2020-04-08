@@ -13,6 +13,8 @@ _r = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141  # 私�
 _Gx = 0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798  # 椭圆曲线上固定一点 G 的 x
 _Gy = 0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8  # 椭圆曲线上固定一点 G 的 y
 
+
+
 def get_magic_param():
     return (_a, _b, _p, _r), (_Gx, _Gy)
 
@@ -89,3 +91,15 @@ def base58(address_hex):
 def c_logistic(n):
     return 64 * (1 / (1 + math.exp(1) ** (-n + 20)))
 
+
+def tuple2string(public_key: tuple):
+    """
+    :param public_key: 156 = 78 + 78 = 4 * 39
+    :return:
+    """
+    merge = str(public_key[0]) + str(public_key[1])
+    return merge
+
+
+def string2tuple(s: str):
+    return int(s[:77]), int(s[77:])

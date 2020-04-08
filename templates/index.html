@@ -1,47 +1,266 @@
 <!DOCTYPE html>
-<html style="width:100%;height:100%" lang="en">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>初始界面</title>
-</head>
-<body style="width:100%;height:100%;margin:0">
-<div style="width:50%;height:100%;float:left">
-    <div style="height:35%;margin:20px 0px 0px 100px">
-        <div style="height:30%;">
-            <a href="/get_map"><input type="button" value="更新网络" style="width:80px;height:50px;margin:0px 20px 0px 0px"  ></a>
-            <a href="/consensus"><input type="button" value="更新链" style="width:80px;height:50px;margin:0px 20px 0px 0px"  ></a>
-            <a href="/receive_transaction"><input type="button" value="接受新交易" style="width:80px;height:50px;margin:0px 20px 0px 0px"  ></a>
-            <a href="/mine"><input type="button" value="挖矿" style="width:80px;height:50px;margin:0px 20px 0px 0px"  ></a>
-            <a href="/wallet"><input type="button" value="钱包" style="width:80px;height:50px;margin:0px 20px 0px 0px" </a>
-        </div>
-        <div>
-            <a href="/show_network"><input type="button"  style="width:100px;height:50px;margin:0px 30px 0px 0px" value="网络节点" ></a>
-            <a href="/show_transaction"><input type="button"  style="width:100px;height:50px;margin:0px 30px 0px 0px" value="交易池" ></a>
-        </div>
-    </div>
-    <div style="width:80%;height:30%;margin:0px 20px 50px 100px">
-        <textarea rows="10" disabled cols="20" style="font-size:20px; width:100%;height:100%">{% if log %}{{log}}{% endif %}</textarea>
-    </div>
-    <div style="width:80%;height:20%;margin:10px 20px 20px 100px">
-        <form action="transaction" method="post" enctype=multipart/form-data>
-            收款人: <input   type="text"  name="recipient"/>
-            &nbsp&nbsp&nbsp&nbsp&nbsp
-            交易金额: <input style="width:80px;"type="text" name="amount" placeholder="请输入数字"/>
-            &nbsp&nbsp&nbsp
-            <input type="submit" value="提交交易" />
-        </form>
-        <p></p>
-    </div>
-</div>
+    <title>区块链示例</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/mdui.css') }}">
+    <style>
+        .mdui-card {
+            margin-top: 20px;
+        }
 
-<div style="width:40%;height:80%;float:right;margin:5% 5% 2.5% ">
-        <textarea disabled rows="10" cols="40" style="width:100%;height:100%">
-            {% if chain %}
-            {% for i in chain %}
-                {{i}}
-            {% endfor %}
-            {% endif %}
-        </textarea>
+        .mdui-card-primary-body {
+            margin: 10px 0;
+            word-wrap: break-word;
+        }
+
+        .mdui-list {
+            padding: 8px 2px;
+        }
+
+        .mdui-textfield {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .mdui-list-item-content {
+            margin-left: 6px;
+        }
+
+        a{
+            color: black;
+        }
+    </style>
+</head>
+<body class="mdui-theme-primary-teal mdui-theme-accent-red mdui-loaded">
+<div class="mdui-appbar mdui-color-theme">
+    <div class="mdui-toolbar mdui-container">
+        <a href="/" class="mdui-typo-headline mdui-text-color-white" style="font-weight: 300">区块链示例</a>
+        <a href="javascript:;" class="mdui-typo-title">后台</a>
+    </div>
 </div>
+<div class="mdui-container" style="margin-bottom: 40px">
+    <div class="mdui-container-fluid">
+        <div class="mdui-col-md-6">
+            <!--            钱包-->
+            <div class="mdui-card">
+
+                <div class="mdui-card-header">
+                    <img class="mdui-card-header-avatar" src="{{ url_for('static',filename='image/avatar.jpg') }}"/>
+                    <div class="mdui-card-header-title">用户</div>
+                    <div class="mdui-card-header-subtitle">TX0000001</div>
+                </div>
+
+                <div class="mdui-card-primary">
+                    <div class="mdui-card-primary-subtitle">钱包余额</div>
+                    <div class="mdui-card-primary-title">{{amount}} C</div>
+                    <div class="mdui-card-primary-subtitle">未确认金额</div>
+                    <div class="mdui-card-primary-title">{{hypoamount}} C</div>
+                    <div class="mdui-card-primary-subtitle">您的公钥</div>
+                    <div id="public_key" class="mdui-card-primary-body">
+                        {{public_key}}
+                    </div>
+                    <div class="mdui-card-primary-subtitle">您的私钥</div>
+                    <div class="mdui-card-primary-body">{{secret_key}}</div>
+                </div>
+
+                <div class="mdui-card-actions">
+                    <a href="/receive_transaction">
+                        <button class="mdui-btn mdui-ripple">
+                            <i class="mdui-icon material-icons">refresh</i>
+                            手动更新
+                        </button>
+                    </a>
+                    <button class="mdui-btn mdui-ripple" data-clipboard-target="#public_key">
+                        <i class="mdui-icon material-icons" style="font-size: 17px">content_copy</i>
+                        复制公钥
+                    </button>
+                </div>
+            </div>
+
+            <!--            交易-->
+            <div class="mdui-card">
+
+                <div class="mdui-card-primary">
+                    <div class="mdui-card-primary-title">交易</div>
+                </div>
+                <form action="transaction" method="post" enctype=multipart/form-data>
+                    <div class="mdui-textfield mdui-textfield-has-bottom">
+                        <i class="mdui-icon material-icons">vpn_key</i>
+                        <label class="mdui-textfield-label">收款方公钥</label>
+                        <input name="recipient" class="mdui-textfield-input">
+                        <div class="mdui-textfield-helper">公钥长度为 156 位</div>
+                    </div>
+
+                    <div class="mdui-textfield">
+                        <i class="mdui-icon material-icons">attach_money</i>
+                        <label class="mdui-textfield-label">金额</label>
+                        <input name="amount" class="mdui-textfield-input" type="text">
+                    </div>
+
+
+                    <div class="mdui-card-primary">
+                        <div class="mdui-card-primary-subtitle">确认交易前请仔细检查相关信息</div>
+                    </div>
+
+                    <div class="mdui-card-actions">
+                        <button type="submit" value="提交交易" class="mdui-btn mdui-ripple">
+                            提交交易
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="mdui-col-md-6">
+            <!--            挖矿-->
+            <div class="mdui-card">
+                <div class="mdui-card-actions">
+                    <form action="mine" method="post" enctype=multipart/form-data>
+                        <label class="mdui-checkbox" style="float: right;margin-right: 10px">
+                            <input name="coop" type="checkbox" value="on"/>
+                            <i class="mdui-checkbox-icon"></i>
+                            协同
+                        </label>
+                        <div class="mdui-textfield mdui-textfield-has-bottom">
+                            <i class="mdui-icon material-icons">computer</i>
+                            <label class="mdui-textfield-label">最小任务数</label>
+                            <input name="coop_batch" class="mdui-textfield-input">
+                            <div class="mdui-textfield-helper">最好为 2 的幂</div>
+                        </div>
+                        <button type="submit" value="挖矿" class="mdui-btn mdui-ripple">
+                            挖矿
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <!--          子代网络-->
+            {% if children and children|length > 0%}
+            <div class="mdui-card">
+                <div class="mdui-card-primary">
+                    <div class="mdui-card-primary-subtitle">当前在线</div>
+                    <div class="mdui-card-primary-title">{{children|length}} 个协同节点</div>
+                </div>
+                <ul class="mdui-list">
+                    {% for i in children %}
+                    <li class="mdui-list-item mdui-ripple">
+                        <i class="mdui-icon material-icons">computer</i>
+                        <div class="mdui-list-item-content">{{i}}</div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="mdui-card-actions">
+                    <a href="/get_map">
+                        <button class="mdui-btn mdui-ripple">
+                            <i class="mdui-icon material-icons">refresh</i>
+                            手动更新
+                        </button>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+            <!--            协同-->
+            <div class="mdui-card">
+                <div class="mdui-card-actions">
+                    <div class="mdui-card-primary">
+                        <div class="mdui-card-primary-title">
+                            协同
+                        </div>
+                    </div>
+                    <form action="connect_parent" method="post" enctype=multipart/form-data>
+                        <div class="mdui-textfield mdui-textfield-has-bottom">
+                            <i class="mdui-icon material-icons">computer</i>
+                            <label class="mdui-textfield-label">根服务器地址</label>
+                            <input name="coop_parent" class="mdui-textfield-input">
+                            <div class="mdui-textfield-helper">IP 地址包括端口号</div>
+                        </div>
+                        <button type="submit" value="连接" class="mdui-btn mdui-ripple">
+                            连接
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <!--            网络-->
+            <div class="mdui-card">
+                <div class="mdui-card-primary">
+                    <div class="mdui-card-primary-subtitle">当前在线</div>
+                    <div class="mdui-card-primary-title">{{node_length}} 个节点</div>
+                </div>
+                <ul class="mdui-list">
+                    <li class="mdui-list-item mdui-ripple">
+                        <i class="mdui-icon material-icons">dns</i>
+                        <div class="mdui-list-item-content">{{localip}}</div>
+                    </li>
+
+                    {% if networks %}
+                    {% for i in networks %}
+                    <li class="mdui-list-item mdui-ripple">
+                        <i class="mdui-icon material-icons">computer</i>
+                        <div class="mdui-list-item-content">{{i}}</div>
+                    </li>
+                    {% endfor %}
+                    {% endif %}
+                </ul>
+                <div class="mdui-card-actions">
+                    <a href="/get_map">
+                        <button class="mdui-btn mdui-ripple">
+                            <i class="mdui-icon material-icons">refresh</i>
+                            手动更新
+                        </button>
+                    </a>
+                </div>
+            </div>
+            <!--            区块链-->
+            <div class="mdui-card">
+                <div class="mdui-card-primary">
+                    <div class="mdui-card-primary-subtitle">当前区块链</div>
+                    <div class="mdui-card-primary-title">{{ block_length }} 个区块</div>
+                </div>
+                <div class="mdui-table-fluid">
+                    <table class="mdui-table mdui-table-hoverable">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>获得者</th>
+                            <th>交易量</th>
+                            <th>时间</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% if chain %}
+                        {% for i in chain %}
+                        <tr>
+                            <td>{{i['index']}}</td>
+                            <td>{{i['owner']}}</td>
+                            <td>{{i['number']}}</td>
+                            <td>{{i['time']}}</td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mdui-card-actions">
+                    <a href="/consensus">
+                        <button class="mdui-btn mdui-ripple">
+                            <i class="mdui-icon material-icons">refresh</i>
+                            手动更新
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{{ url_for('static',filename='js/clipboard.min.js') }}"></script>
+<script src="{{ url_for('static',filename='js/mdui.min.js') }}"></script>
+<script>
+    new ClipboardJS('.btn');
+    {% if message %}
+    mdui.snackbar({
+        message: '{{ message }}',
+        position: 'left-bottom'
+    });
+    {% endif %}
+</script>
 </body>
 </html>
